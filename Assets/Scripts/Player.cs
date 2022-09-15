@@ -7,6 +7,7 @@ public class Player : MonoBehaviour
 {
     public Transform materialHolder;
     [SerializeField]private CraftingMaterial holdingMaterial;
+    [SerializeField] private MaterialManipulator materialManipulator;
 
     public float speed = 5;
     
@@ -14,23 +15,29 @@ public class Player : MonoBehaviour
     {
         Move();
         if(Input.GetKeyDown(KeyCode.F)) DiscardMaterial();
+        if (Input.GetKeyDown(KeyCode.E) && materialManipulator)
+        {         
+                if (IsHoldingMaterial() && materialManipulator.CanHoldMaterial())
+                {
+                    materialManipulator.HoldMaterial(RemoveMaterial());
+                    return;
+                }
+                if (!IsHoldingMaterial() && materialManipulator.CanRemoveMaterial())
+                {
+                    HoldMaterial(materialManipulator.RemoveMaterial());
+                    return;
+                }
+            
+        }               
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.TryGetComponent(out MaterialManipulator materialManipulator))
-        {
-            if (IsHoldingMaterial() && materialManipulator.CanHoldMaterial())
-            {
-                materialManipulator.HoldMaterial(RemoveMaterial());
-                return;
-            }
-            if (!IsHoldingMaterial() && materialManipulator.CanRemoveMaterial())
-            {
-                HoldMaterial(materialManipulator.RemoveMaterial());
-                return;
-            }
-        }
+        if (other.gameObject.TryGetComponent(out MaterialManipulator materialManipulator)) this.materialManipulator = materialManipulator;
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.TryGetComponent(out MaterialManipulator materialManipulator)) this.materialManipulator = null;
     }
 
     private void Move()
